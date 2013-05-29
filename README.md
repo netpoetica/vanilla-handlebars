@@ -32,3 +32,6 @@ var newUser = data;    // From an AJAX function.
 
 vanillaHandlebars.render('fileName', { user: newUser });
 ````
+
+## Async False?
+By default, VanillaHandlebars sets async to false. I do this because I do not want to reply to issues about why "it's not working" :-) if you build a decent router or use one of the dozens that JSers are babbling about all the time, you should be able to set async = true without any problems.
