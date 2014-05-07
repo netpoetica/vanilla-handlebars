@@ -10,9 +10,11 @@
     "view manager"
   ],
   "dependencies": {
-    "jofan/get-file"
+    "jofan/get-file": "*"
   },
-  "development": {},
+  "development": {
+    "components/handlebars.js": "*"
+  },
   "license": "MIT",
   "scripts": [
     "index.js"

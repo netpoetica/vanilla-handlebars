@@ -3,6 +3,8 @@
  * @author Keith Rosenberg (netpoetica) <kthrose@netpoetica.com>
  * @link https://github.com/netpoetica/vanilla-handlebars
  * @description A View and Template  Manager for Handlebars templates.
+ * @requires module:jofan/get-file
+ * @requires module:wycats/handlebars.js
  */
 module.exports = VanillaHandlebars;
 
@@ -15,6 +17,9 @@ module.exports = VanillaHandlebars;
  * @returns {object} A handle to the public API of this instance.
  */
 function VanillaHandlebars(Handlebars, templatePath, bAsync){
+
+  // Dependencies
+  var getFile = require('get-file');
 
   /**
    * View Management via views object
@@ -37,11 +42,18 @@ function VanillaHandlebars(Handlebars, templatePath, bAsync){
     viewLoaded: "VIEW_LOADED"
   };
 
+  (function validatePath(){
+    if(templatePath[templatePath.length -1] !== "/"){
+      templatePath += "/";
+    }
+  }());
+
   /**
    * Set async false in case you need to render a view right away.
    * If you have a routing mechanism in place, you can probably set this to true or remove the line.
    * You will get an error like 'template' is not a function if you are having synchronization problems
    * @private
+   * @deprecated
    */
   bAsync = typeof bAsync !== 'boolean' ? false : bAsync;
 
@@ -69,65 +81,61 @@ function VanillaHandlebars(Handlebars, templatePath, bAsync){
   };
 
   // Public API.
-  return {
-    /**
-     * Registers a template by name and assigns a render function to it.
-     * @public
-     * @instance
-     * @param {string} name - should be the filename of your partial, minus the file extension (.html).
-     * @example
-     * // "home", "about", "contact"
-     * @param {function} renderFn - function which will be called when you render this template via vanillaHandlebars.render("myTemplate")
-     * @callback
-     */
-    register: function(name, renderFn){
-      if(typeof name === 'string' && typeof renderFn == 'function'){
-        var _this = this,
-            target = templatePath + name + ".html";
+  /**
+   * Registers a template by name and assigns a render function to it.
+   * @public
+   * @instance
+   * @param {string} name - should be the filename of your partial, minus the file extension (.html).
+   * @example
+   * // "home", "about", "contact"
+   * @param {function} renderFn - function which will be called when you render this template via vanillaHandlebars.render("myTemplate")
+   * @callback
+   */
+  this.register = function(name, renderFn){
+    if(typeof name === 'string' && typeof renderFn == 'function'){
+      var target = templatePath + name + ".html";
 
-        views[name] = {
-          render: renderFn
-        };
+      views[name] = {
+        render: renderFn
+      };
 
-        var req = new XMLHttpRequest();
-        req.open("GET", target, bAsync);
-        req.onreadystatechange = function(){
-          // Bail on failure.
-          if(req.readyState != 4 || req.status != 200){
-            return;
-          } else {
-            // Success
-            views[name].template = Handlebars.compile(req.responseText);
-            emit(name);
-          }
-        };
-        req.send();
-
-      }
-    },
-    /**
-     * 
-     * @public
-     * @instance
-     * @param {string} name - should be the filename of your partial, minus the file extension (.html).
-     * @example
-     * // "home", "about", "contact"
-     * @param {string} context - The compiled output data from the loaded Handlebars template after loading
-     */
-    render: function(name, context){
-      var view = views[name];
-      if(typeof view.render == 'function'){
-        if(view.template){
-          view.render(view.template(context));
+      getFile(target, function(err, res){
+        if(err){
+          templateLoadFailure(name, err);
         } else {
-          el.addEventListener(e.viewLoaded, function(evt){
-            var data = evt.detail;
-            if(data.name === name){
-              view.render(view.template(context));
-            }
-          });
+          // Success
+          views[name].template = Handlebars.compile(res);
+          emit(name);
         }
+      });
+    }
+  };
+  /**
+   * 
+   * @public
+   * @instance
+   * @param {string} name - should be the filename of your partial, minus the file extension (.html).
+   * @example
+   * // "home", "about", "contact"
+   * @param {string} context - The compiled output data from the loaded Handlebars template after loading
+   */
+  this.render = function(name, context){
+    var view = views[name];
+    if(typeof view.render == 'function'){
+      if(view.template){
+        view.render(view.template(context));
+      } else {
+        el.addEventListener(e.viewLoaded, function(evt){
+          var data = evt.detail;
+          if(data.name === name){
+            view.render(view.template(context));
+          }
+        });
       }
     }
-  }
+  };
+}
+
+VanillaHandlebars.prototype.toString = function(){
+  return "[object VanillaHandlebars]";
 };
