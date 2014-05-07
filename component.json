@@ -1,0 +1,22 @@
+{
+  "name": "vanilla-handlebars",
+  "repo": "netpoetica/vanilla-handlebars",
+  "description": "View and Template  Manager for Handlebars templates.",
+  "version": "0.0.1",
+  "keywords": [
+    "handlebars",
+    "templates",
+    "views",
+    "view manager"
+  ],
+  "dependencies": {
+    "jofan/get-file": "*"
+  },
+  "development": {
+    "components/handlebars.js": "*"
+  },
+  "license": "MIT",
+  "scripts": [
+    "index.js"
+  ]
+}

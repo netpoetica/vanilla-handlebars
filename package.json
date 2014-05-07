@@ -1,0 +1,27 @@
+{
+  "name": "vanilla-handlebars",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:netpoetica/vanilla-handlebars.git"
+  },
+  "author": {
+    "name": "Keith Rosenberg",
+    "email": "krosenberg@m3-health.com",
+    "url": "github.com/netpoetica"
+  },
+  "description": "View and Template  Manager for Handlebars templates.",
+  "version": "0.0.1",
+  "keywords": [
+    "handlebars",
+    "templates",
+    "views",
+    "view manager"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "mocha": "~1.18.2",
+    "should": "~3.3.1",
+    "chai": "~1.9.1"
+  },
+  "license": "MIT"
+}
