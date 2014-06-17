@@ -13,10 +13,9 @@ module.exports = VanillaHandlebars;
  * @constructor
  * @param {object} Handlebars - pass in Handlebars during instantiation.
  * @param {string} templatePath - the file path to your template folder.
- * @param {boolean} bAsync - if true, force VanillaHandlebars to use async requests when possible.
  * @returns {object} A handle to the public API of this instance.
  */
-function VanillaHandlebars(Handlebars, templatePath, bAsync){
+function VanillaHandlebars(Handlebars, templatePath){
 
   // Dependencies
   var getFile = require('get-file');
@@ -49,26 +48,24 @@ function VanillaHandlebars(Handlebars, templatePath, bAsync){
   }());
 
   /**
-   * Set async false in case you need to render a view right away.
-   * If you have a routing mechanism in place, you can probably set this to true or remove the line.
-   * You will get an error like 'template' is not a function if you are having synchronization problems
-   * @private
-   * @deprecated
-   */
-  bAsync = typeof bAsync !== 'boolean' ? false : bAsync;
-
-  /**
    * Emits a custom event on the DOM element stored in the private "el" property of this VanillaHandlebars instance.
    * @function
    * @private
    */
   var emit = function(name){
-    var evt = document.createEvent("CustomEvent");
-    evt.initCustomEvent(e.viewLoaded, true, true, {
+    var evtData = {
       name: name,
       view: views[name]
-    });
-    el.dispatchEvent(evt);
+    };
+
+    // Native (will not work < IE9)
+    if(!window.jQuery){
+      var evt = document.createEvent("CustomEvent");
+      evt.initCustomEvent(e.viewLoaded, true, true, evtData);
+      el.dispatchEvent(evt);
+    } else {
+      $(el).trigger(e.viewLoaded, evtData);
+    }
   };
 
   /**
@@ -125,12 +122,19 @@ function VanillaHandlebars(Handlebars, templatePath, bAsync){
       if(view.template){
         view.render(view.template(context));
       } else {
-        el.addEventListener(e.viewLoaded, function(evt){
+        var onViewLoaded = function(evt){
           var data = evt.detail;
           if(data.name === name){
             view.render(view.template(context));
           }
-        });
+        };
+
+        if(!window.jQuery){
+          // Todo: xbrowser addEventListener
+          el.addEventListener(e.viewLoaded, onViewLoaded);
+        } else {
+          $(el).on(e.viewLoaded, onViewLoaded);
+        }
       }
     }
   };

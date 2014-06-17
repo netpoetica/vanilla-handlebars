@@ -13,6 +13,7 @@
     "jofan/get-file": "*"
   },
   "development": {
+    "components/jquery": "1.11.0",
     "components/handlebars.js": "*"
   },
   "license": "MIT",
