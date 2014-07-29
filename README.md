@@ -7,32 +7,38 @@ A plain old JS object that can automate the process of loading in Handlebars tem
 ## How to Use Vanilla Handlebars
 This module expects two arguments during instantiation: a reference to the Global Handlebars object, and a path string from the root to the folder containing your templates:
 
-````javascript
-var vanillaHandlebars = new VanillaHandlebars(window.Handlebars, 'static/js/templates/');
-````
+```javascript
+var vanillaHandlebars = new VanillaHandlebars(window.Handlebars, './templates/');
+```
+
+You can also specify some different options like so:
+
+```javascript
+var vanillaHandlebars = new VanillaHandlebars(window.Handlebars, {
+  templateFileType: 'hbr',  // Or 'html' or 'tpl' or 'tmpl' whatever you like
+  templatePath: './templates'
+});
+```
 
 After instantiation, you register your templates as views like so:
 
-````javascript
+```javascript
 vanillaHandlebars.register('fileName', function(data){
   // fileName represents a .html file in your template folder. Later, in order to render this template you will
   // have to call it by the string specified as fileName here.
 
   // The data argument to the callback function represents data the user may pass to render the compled Handlebars file. 
   // The render function will pass that data to the compiled Handlebars file and then data will be the HTML returned from the template.
-  console.log(data);
   $('#content').html(data)
 });
-````
+```
 
 The register function will compile your Handlebars templates and have them waiting for use by simply calling the render function. The render function is a reference to the anonymous function you passed to register:
 
-````javascript
-var newUser = data;    // From an AJAX function.
+```javascript
+var newUser = {
+  name: "Hello"
+};
 
 vanillaHandlebars.render('fileName', { user: newUser });
-````
-
-## Async False?
-# Deprecated
-By default, VanillaHandlebars sets async to false. I do this because I do not want to reply to issues about why "it's not working" :-) if you build a decent router or use one of the dozens that JSers are babbling about all the time, you should be able to set async = true without any problems.
+```
