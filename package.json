@@ -10,7 +10,7 @@
     "url": "github.com/netpoetica"
   },
   "description": "View and Template  Manager for Handlebars templates.",
-  "version": "0.0.2",
+  "version": "1.0.0-beta",
   "keywords": [
     "handlebars",
     "templates",
