@@ -2,7 +2,7 @@
   "name": "vanilla-handlebars",
   "repo": "netpoetica/vanilla-handlebars",
   "description": "View and Template  Manager for Handlebars templates.",
-  "version": "0.0.1",
+  "version": "v1.0.0-beta",
   "keywords": [
     "handlebars",
     "templates",
