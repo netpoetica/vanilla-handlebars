@@ -12,10 +12,20 @@ module.exports = VanillaHandlebars;
  * Repsonsible for Adding and Rendering Views, 
  * @constructor
  * @param {object} Handlebars - pass in Handlebars during instantiation.
- * @param {string} templatePath - the file path to your template folder.
+ * @param {string} opts.templatePath - the file path to your template folder.
+ * @param {string} opts.templateFileType - the file extension of the files in your templatePath.
  * @returns {object} A handle to the public API of this instance.
  */
-function VanillaHandlebars(Handlebars, templatePath){
+function VanillaHandlebars(Handlebars, opts){
+  opts = opts || {};
+
+  var templatePath = opts.templatePath || './',
+      templateFileType = opts.templateFileType || 'html';
+
+  // Support legacy use of VanillaHandlebars where opts was just a string.
+  if(typeof opts === 'string'){
+    templatePath = opts;
+  }
 
   // Dependencies
   var getFile = require('get-file');
@@ -52,7 +62,7 @@ function VanillaHandlebars(Handlebars, templatePath){
    * @function
    * @private
    */
-  var emit = function(name){
+  function emit(name){
     var evtData = {
       name: name,
       view: views[name]
@@ -64,16 +74,36 @@ function VanillaHandlebars(Handlebars, templatePath){
       evt.initCustomEvent(e.viewLoaded, true, true, evtData);
       el.dispatchEvent(evt);
     } else {
+      // Use jquery if we have it. Should allow support of old IE.
       $(el).trigger(e.viewLoaded, evtData);
     }
   };
+
+  /**
+   * Get the path of the path you need
+   * @private
+   * @param {string} filename - the filename of the template you're working on.
+   * @param {boolean} bExtension - true if you want to return "html" out of "index.html", false if you want "index" out of "index.html"
+   */
+  function parseFilename(filename, bExtension){
+    if(typeof filename !== 'string') throw new Error('Error parsing filename: ' + filename + ' is not a string.');
+
+    var match = filename.match(/([^:\\/]*?)(?:\.([^ :\\/.]*))?$/)
+
+    // If bExtension is true, you will get "html" out of "index.min.html"
+    // otherwise you will get "index.min" out of "index.min.html"
+    // Offset the first option which returns the full path.
+    bExtension = (Number(bExtension) || 0) + 1;
+
+    return match[bExtension];
+  }
 
   /**
    * @throws Will throw an error if the AJAX request fails to load the requested template from the templatePath
    * @function
    * @private
    */
-  var templateLoadFailure = function(name, err){
+  function templateLoadFailure(name, err){
     throw new Error("Unable to load " + name + " template. ", err);
   };
 
@@ -82,27 +112,30 @@ function VanillaHandlebars(Handlebars, templatePath){
    * Registers a template by name and assigns a render function to it.
    * @public
    * @instance
-   * @param {string} name - should be the filename of your partial, minus the file extension (.html).
+   * @param {string} name - should be the filename of your partial, plus or minus the file extension.
    * @example
    * // "home", "about", "contact"
    * @param {function} renderFn - function which will be called when you render this template via vanillaHandlebars.render("myTemplate")
    * @callback
    */
   this.register = function(name, renderFn){
-    if(typeof name === 'string' && typeof renderFn == 'function'){
-      var target = templatePath + name + ".html";
+    var filename = parseFilename(name),
+        filetype = parseFilename(name, true);
 
-      views[name] = {
+    if(typeof name === 'string' && typeof renderFn == 'function'){
+      var target = templatePath + filename + "." + (filetype || templateFileType);
+
+      views[filename] = {
         render: renderFn
       };
 
       getFile(target, function(err, res){
         if(err){
-          templateLoadFailure(name, err);
+          templateLoadFailure(filename, err);
         } else {
           // Success
-          views[name].template = Handlebars.compile(res);
-          emit(name);
+          views[filename].template = Handlebars.compile(res);
+          emit(filename);
         }
       });
     }
@@ -111,20 +144,23 @@ function VanillaHandlebars(Handlebars, templatePath){
    * 
    * @public
    * @instance
-   * @param {string} name - should be the filename of your partial, minus the file extension (.html).
+   * @param {string} name - should be the filename of your partial, plus or minus the file extension.
    * @example
    * // "home", "about", "contact"
    * @param {string} context - The compiled output data from the loaded Handlebars template after loading
    */
   this.render = function(name, context){
-    var view = views[name];
+    var filename = parseFilename(name),
+        filetype = parseFilename(name, true);
+
+    var view = views[filename];
     if(typeof view.render == 'function'){
       if(view.template){
         view.render(view.template(context));
       } else {
         var onViewLoaded = function(evt){
           var data = evt.detail;
-          if(data.name === name){
+          if(data.name === filename){
             view.render(view.template(context));
           }
         };
